@@ -1,6 +1,5 @@
 package com.zhiyou100.bd17;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -11,114 +10,161 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
-public class HdfsUtils {
-	public static final Configuration CONF = new Configuration();
-	public static FileSystem hdfs;
+public class HdfsUtils{
+	
+	private static final Configuration CONF
+						= new Configuration();
+	private static FileSystem hdfs;
 	
 	static{
-		try{
+		try {
 			hdfs = FileSystem.get(CONF);
-		}catch (Exception e) {
+		} catch (IOException e) {
 			System.out.println("无法连接hdfs, 请检查配置.");
 			e.printStackTrace();
 		}
 	}
 	
-	//wirte
-	public static void createFile(String fileName, String content) throws IOException{
-		Path path = new Path(fileName);
+	//write
+	public static void createFile(
+			String fileName, 
+			String content) 
+					throws Exception{
+		Path path = 
+				new Path(fileName);
 		if(hdfs.exists(path)){
-			System.out.println("文件已存在");
+			System.out.println("文件已经存在");
 		}else{
-			FSDataOutputStream outputStream = hdfs.create(path);
+			FSDataOutputStream outputStream =
+					hdfs.create(path);
 			outputStream.writeUTF(content);
 			outputStream.flush();
 			outputStream.close();
 		}
 	}
 	
+	
 	//read
-	public static void readFile(String fileName) throws IOException{
-		Path path = new Path(fileName);
+	public static void readFile(String fileName) 
+			throws IOException{
+		Path path = 
+				new Path(fileName);
 		if(!hdfs.exists(path) || hdfs.isDirectory(path)){
-			System.out.println("给定路径"+fileName+"不存在, 或者不是一个文件.");
+			System.out.println("给定路径"
+					+fileName+
+					"不存在, 或者不是一个文件");
 		}else{
-			FSDataInputStream inputStream = hdfs.open(path);
+			FSDataInputStream inputStream = 
+					hdfs.open(path);
 			String content = inputStream.readUTF();
 			System.out.println(content);
 		}
+		
 	}
 	
+	
 	//delete
-	public static void deleteFile(String fileName) throws IOException{
-		Path path = new Path(fileName);
+	public static void deleteFile(
+			String fileName) 
+					throws IOException{
+		Path path = 
+				new Path(fileName);
 		if(!hdfs.exists(path)){
-			System.out.println("给定的路径:"+fileName+"不存在");
+			System.out.println(
+					"给定文件路径:"
+					+fileName+
+					"不存在");
 		}else{
 			hdfs.delete(path, true);
 		}
 	}
 	
-	//copyFromLocalFile
-	public static void copyFile(String srcFileName, String fileName) throws IOException{
-		Path srcPath = new Path(srcFileName);
-		Path path = new Path(fileName);
-		if(!(new File(srcFileName).exists())){
-			System.out.println("给定路径"+srcFileName+"不存在");
-		}else{
-			hdfs.copyFromLocalFile(srcPath, path);
-		}
-	}
 	
 	//upload
-	public static void uploadFile(String fileName,String hdfsPath) throws IOException{
-		Path src = new Path(fileName);
-		Path dst = new Path(hdfsPath);
-		hdfs.copyFromLocalFile(src, dst);
+	public static void uploadFile(
+			String windowsFileName
+			, String hdfsPathName) 
+					throws IOException{
+		Path src = 
+				new Path(windowsFileName);
+		Path dst = 
+				new Path(hdfsPathName);
+		
+		hdfs.copyFromLocalFile(
+				src, dst);
 	}
 	
+	
 	//download
-	public static void downloadFile(String hdfsPath,String localPath) throws IOException{
-		Path src = new Path(hdfsPath);
-		Path dst = new Path(localPath);
+	public static void downloadFile(
+			String hdfsFileName, 
+			String windowsPathName) 
+					throws IOException{
+		Path src = 
+				new Path(hdfsFileName);
+		//下载到windows上
+		Path dst = 
+				new Path(windowsPathName);
 		hdfs.copyToLocalFile(src, dst);
 	}
 	
-	//get status
-	public static void getFileStatus(String fileName) throws FileNotFoundException, IOException{
+	
+	//get file status
+	public static void getFileStatus(
+			String fileName) 
+			throws 
+			FileNotFoundException, 
+			IOException{
+		
 		Path path = new Path(fileName);
-		FileStatus[] fileStatus = hdfs.listStatus(path);
+		FileStatus[] fileStatus = 
+				hdfs.listStatus(path);
 		for(FileStatus fs : fileStatus){
-			
-			//System.out.println("\t路径是:\t"+fs.getPath());
-			//System.out.println(
-			//		"\t是否是文件夹是:\t"+
-			//		hdfs.isDirectory(new Path(fs.getPath().toString()))
-			//		);
-			/*if(!hdfs.isDirectory(new Path(fs.getPath().toString()))){
-				System.out.println(fs);
-			}
-			if(hdfs.isDirectory(new Path(fs.getPath().toString()))){
-				getFileStatus(fs.getPath().toString());
-			}*/
 			if(fs.isFile()){
-				System.out.println(fs);
+				System.out.println("文件:\t"+fs);
 			}
 			if(fs.isDirectory()){
-				getFileStatus(fs.getPath().toString());
+				System.out.println("文件目录:\t"+fs);
 			}
 		}
 	}
 	
 	
-	public static void main(String[] args) throws IOException {
-		String content = "郭仁杰";
-		String fileName = "/";
+	
+	public static void main(String[] args) 
+			throws Exception{
+		
+		String content = 
+				"郭仁杰";
+		String fileName = 
+				"/user/output/HdfsUtils/createFile.txt";
 //		createFile(fileName, content);
-//		readFile("/dirFromJava/三国演义原著.txt");
+		
+//		readFile("/user/output/HdfsUtils/createFile.txt");
 //		deleteFile(fileName);
-//		uploadFile("D:\\三国演义原著.txt", "/dirFromJava/三国演义原著2.txt");
-//		downloadFile("/dirFromJava/三国演义原著2.txt", "D:\\三国演义原著2.txt");
-		getFileStatus(fileName);
+//		uploadFile(
+//				"D:\\test\\三国演义原著.txt"
+//				, "/user/output/HdfsUtils/"
+//						+ "uploadFile/三国演义原著1.txt");
+//		downloadFile(
+//				"/user/output/HdfsUtils/uploadFile/三国演义原著1.txt", 
+//				"D:\\test\\三国演义原著1.txt");
+		getFileStatus(
+				"/user/output/HdfsUtils");
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }
